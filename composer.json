@@ -1,0 +1,20 @@
+{
+    "name": "lingualeo/php-servaxle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "LinguaLeo",
+            "email": "backend@lingualeo.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "5.5.*",
+        "regeda/castel": "0.1.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "LinguaLeo\\": "src/"
+        }
+    }
+}

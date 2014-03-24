@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="tests/bootstrap.php" colors="true" convertWarningsToExceptions="false">
+
+    <testsuites>
+        <testsuite name="Servaxle">
+            <directory>tests/LinguaLeo/Servaxle</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">src/</directory>
+        </whitelist>
+    </filter>
+
+    <logging>
+        <log type="coverage-html" target="build/coverage" title="LinguaLeo Servaxle"
+             charset="UTF-8" yui="true" highlight="true"
+             lowUpperBound="35" highLowerBound="70" />
+    </logging>
+
+</phpunit>
