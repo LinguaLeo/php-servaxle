@@ -6,7 +6,15 @@ use LinguaLeo\Servaxle\MortalCombat\ArenaInterface;
 
 class LiveForest implements ArenaInterface
 {
-    public function __construct(callable $random)
+    private $season;
+
+    public function __construct($season)
     {
+        $this->season = $season;
+    }
+
+    public function getSeason()
+    {
+        return $this->season;
     }
 }

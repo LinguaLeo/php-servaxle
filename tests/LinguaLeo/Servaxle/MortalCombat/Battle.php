@@ -14,4 +14,19 @@ class Battle
         $this->fighter2 = $fighter2;
         $this->arena = $arena;
     }
+
+    public function getFighter1()
+    {
+        return $this->fighter1;
+    }
+
+    public function getFighter2()
+    {
+        return $this->fighter2;
+    }
+
+    public function getArena()
+    {
+        return $this->arena;
+    }
 }
