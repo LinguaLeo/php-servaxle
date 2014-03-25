@@ -9,8 +9,7 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "php": "5.5.*",
-        "regeda/castel": "0.1.*"
+        "php": "5.5.*"
     },
     "autoload": {
         "psr-0": {
