@@ -38,27 +38,23 @@ class ClassLocatorTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage The sharing "something" is undefined.
+     * @expectedExceptionMessage Identifier "something" is undefined.
      */
-    public function testUndefinedSharing()
+    public function testUndefinedIdentifier()
     {
         $locator = new ClassLocator();
         $locator->something;
     }
 
-    /**
-     * @expectedException \ReflectionException
-     * @expectedExceptionMessage Class SomethingClass does not exist
-     */
-    public function testSharingUnknownClass()
+    public function testSimpleIdentifier()
     {
-        $locator = new ClassLocator(['something' => 'SomethingClass']);
-        $locator->something;
+        $locator = new ClassLocator(['something' => 'foo']);
+        $this->assertSame('foo', $locator->something);
     }
 
     /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Undefined type for parameter "fighter.name"
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Identifier "fighter.name" is undefined.
      */
     public function testFailedSharingWithoutValues()
     {
@@ -69,8 +65,10 @@ class ClassLocatorTest extends \PHPUnit_Framework_TestCase
     public function testSharingWithScalarParameterInConstructor()
     {
         $locator = new ClassLocator(
-            ['fighter' => Fighter::class],
-            ['fighter.name' => 'Baraka']
+            [
+                'fighter' => Fighter::class,
+                'fighter.name' => 'Baraka'
+            ]
         );
         $fighter = $locator->fighter;
         $this->assertInstanceOf(Fighter::class, $fighter);
@@ -96,51 +94,23 @@ class ClassLocatorTest extends \PHPUnit_Framework_TestCase
     public function testSharingWithInterfaceImplementation()
     {
         $locator = new ClassLocator(
-            ['arena' => ArenaInterface::class],
-            [],
-            [ArenaInterface::class => Portal::class]
-        );
-        $this->assertInstanceOf(Portal::class, $locator->arena);
-    }
-
-    public function testSharingWithLink()
-    {
-        $locator = new ClassLocator(
             [
-                'battle' => Battle::class,
-                'debug_fighter' => DebugFighter::class,
-            ],
-            [
-                'battle.fighter2.name' => 'Kung Lao',
-                'debug_fighter.name' => function () {
-                    return uniqid();
-                }
-            ],
-            [
+                'arena' => ArenaInterface::class,
                 ArenaInterface::class => Portal::class
-            ],
-            [
-                'battle.fighter1' => 'debug_fighter'
             ]
         );
-
-        $this->assertInstanceOf(DebugFighter::class, $locator->battle->getFighter1());
-        $this->assertSame($locator->battle->getFighter1(), $locator->debug_fighter);
+        $this->assertInstanceOf(Portal::class, $locator->arena);
     }
 
     public function testSharingWithClassRewritingForParameter()
     {
         $locator = new ClassLocator(
             [
-                'battle' => Battle::class
-            ],
-            [
+                'battle' => Battle::class,
                 'battle.fighter1' => DebugFighter::class,
                 'battle.fighter1.name' => 'Baraka',
                 'battle.fighter2.name' => 'Kung Lao',
                 'battle.arena.season' => 'Winter',
-            ],
-            [
                 ArenaInterface::class => LiveForest::class
             ]
         );
@@ -153,17 +123,13 @@ class ClassLocatorTest extends \PHPUnit_Framework_TestCase
     {
         $locator = new ClassLocator(
             [
-                'battle' => Battle::class
-            ],
-            [
+                'battle' => Battle::class,
                 'battle.fighter1' => FighterFactory::class,
                 'battle.fighter1.isDebug' => true,
                 'battle.fighter1.name' => 'Scorpion',
                 'battle.fighter2' => FighterFactory::class,
                 'battle.fighter2.isDebug' => false,
                 'battle.fighter2.name' => 'Kabal',
-            ],
-            [
                 ArenaInterface::class => Portal::class
             ]
         );

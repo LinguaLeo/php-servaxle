@@ -31,40 +31,44 @@ use ReflectionMethod;
 
 class ClassLocator
 {
-    private $sharings;
     private $values;
-    private $impls;
-    private $links;
 
     /**
      * Instantiates the locator.
      *
-     * @param array $sharings
      * @param array $values
      * @param array $impls
-     * @param array $links
+     * @param array $aliases
      */
-    public function __construct(array $sharings = [], array $values = [], array $impls = [], array $links = [])
+    public function __construct(array $values = [])
     {
-        $this->sharings = $sharings;
         $this->values = $values;
-        $this->impls = $impls;
-        $this->links = $links;
     }
 
     /**
-     * Gets an object.
+     * Returns a value as a property.
      *
-     * @param string $name
-     * @return object
+     * @param string $id
+     * @return mixed
+     */
+    public function __get($id)
+    {
+        return $this->$id = $this->getValue($id);
+    }
+
+    /**
+     * Returns a value.
+     *
+     * @param string $id
+     * @return mixed
      * @throws \InvalidArgumentException
      */
-    public function __get($name)
+    public function getValue($id)
     {
-        if (empty($this->sharings[$name])) {
-            throw new \InvalidArgumentException(sprintf('The sharing "%s" is undefined.', $name));
+        if (!isset($this->values[$id])) {
+            throw new \InvalidArgumentException(sprintf('Identifier "%s" is undefined.', $id));
         }
-        return $this->$name = $this->createInstance($this->sharings[$name], $name);
+        return $this->values[$id] = $this->reflectValue($this->values[$id], $id);
     }
 
     /**
@@ -90,10 +94,10 @@ class ClassLocator
     private function newInstance(ReflectionClass $class, $path)
     {
         if (!$class->isInstantiable()) {
-            if (empty($this->impls[$class->name])) {
+            if (empty($this->values[$class->name])) {
                 throw new \RuntimeException(sprintf('No implementation found for "%s" in the path "%s".', $class->name, $path));
             }
-            return $this->createInstance($this->impls[$class->name], $path);
+            return $this->reflectValue($this->values[$class->name], $path);
         }
 
         $constructor = $class->getConstructor();
@@ -117,15 +121,16 @@ class ClassLocator
         $args = [];
         foreach ($constructor->getParameters() as $parameter) {
             $anchor = $path.'.'.$parameter->name;
-            if (isset($this->links[$anchor])) {
-                $args[] = $this->{$this->links[$anchor]};
-            } elseif (isset($this->values[$anchor])) {
-                $args[] = $this->reflectValue($this->values[$anchor], $anchor);
-            } elseif (($parameterClass = $parameter->getClass())) {
-                $args[] = $this->newInstance($parameterClass, $anchor);
-            } else {
-                throw new \RuntimeException(sprintf('Undefined type for parameter "%s"', $anchor));
+            try {
+                $value = $this->getValue($anchor);
+            } catch (\InvalidArgumentException $e) {
+                if (($parameterClass = $parameter->getClass())) {
+                    $value = $this->newInstance($parameterClass, $anchor);
+                } else {
+                    throw $e;
+                }
             }
+            $args[] = $value;
         }
         return $args;
     }
@@ -139,8 +144,9 @@ class ClassLocator
      */
     private function reflectValue($value, $path)
     {
-        if (is_string($value) && class_exists($value)) {
+        try {
             $value = $this->createInstance($value, $path);
+        } catch (\ReflectionException $e) {
         }
         if (is_callable($value)) {
             $value = $value($this);
