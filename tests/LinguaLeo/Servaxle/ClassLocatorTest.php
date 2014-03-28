@@ -52,6 +52,16 @@ class ClassLocatorTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('foo', $locator->something);
     }
 
+    public function testCallableIdentifier()
+    {
+        $locator = new ClassLocator([
+            'something' => function () {
+                return 'foo';
+            }
+        ]);
+        $this->assertSame('foo', $locator->something);
+    }
+
     /**
      * @expectedException \InvalidArgumentException
      * @expectedExceptionMessage Identifier "fighter.name" is undefined.

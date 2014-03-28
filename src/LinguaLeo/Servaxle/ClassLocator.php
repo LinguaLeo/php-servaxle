@@ -80,6 +80,9 @@ class ClassLocator
      */
     public function createInstance($className, $path = '')
     {
+        if (!is_string($className)) {
+            throw new \ReflectionException(sprintf('The parameter "className" must be a string. Given %s.', gettype($className)));
+        }
         return $this->newInstance(new ReflectionClass($className), $path);
     }
 
