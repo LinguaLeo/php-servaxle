@@ -37,6 +37,6 @@ class Proxy
 
     public function __invoke(ClassLocator $locator)
     {
-        return $locator->getValue($this->from);
+        return $locator->{$this->from};
     }
 }

@@ -68,7 +68,7 @@ class ClassLocator
         if (!isset($this->values[$id])) {
             throw new \InvalidArgumentException(sprintf('Identifier "%s" is undefined.', $id));
         }
-        return $this->values[$id] = $this->reflectValue($this->values[$id], $id);
+        return $this->reflectValue($this->values[$id], $id);
     }
 
     /**
@@ -129,6 +129,8 @@ class ClassLocator
             } catch (\InvalidArgumentException $e) {
                 if (($parameterClass = $parameter->getClass())) {
                     $value = $this->newInstance($parameterClass, $anchor);
+                } elseif ($parameter->isDefaultValueAvailable()) {
+                    $value = $parameter->getDefaultValue();
                 } else {
                     throw $e;
                 }

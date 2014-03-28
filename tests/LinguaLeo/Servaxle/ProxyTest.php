@@ -26,9 +26,9 @@
 
 namespace LinguaLeo\Servaxle;
 
-class ProxyTest
+class ProxyTest extends \PHPUnit_Framework_TestCase
 {
-    public function testProxyOnOneLevel()
+    public function testSimpleProxy()
     {
         $locator = new ClassLocator(
             [
@@ -40,7 +40,7 @@ class ProxyTest
             ]
         );
 
-        $this->assertSame($locator->unique, $locator->foo);
+        $this->assertSame($locator->foo, $locator->unique);
     }
 
     public function testProxyOnTwoLevels()
@@ -57,6 +57,6 @@ class ProxyTest
             ]
         );
 
-        $this->assertSame($locator->unique, $locator->foo);
+        $this->assertSame($locator->foo, $locator->unique);
     }
 }

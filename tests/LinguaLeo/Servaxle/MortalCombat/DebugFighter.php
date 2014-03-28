@@ -28,4 +28,11 @@ namespace LinguaLeo\Servaxle\MortalCombat;
 
 class DebugFighter extends Fighter
 {
+    private $level;
+
+    public function __construct($name, $level = 0)
+    {
+        parent::__construct($name);
+        $this->level = $level;
+    }
 }
