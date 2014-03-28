@@ -37,8 +37,6 @@ class ClassLocator
      * Instantiates the locator.
      *
      * @param array $values
-     * @param array $impls
-     * @param array $aliases
      */
     public function __construct(array $values = [])
     {
@@ -77,6 +75,7 @@ class ClassLocator
      * @param string $className
      * @param string $path
      * @return object
+     * @throws \ReflectionException
      */
     public function createInstance($className, $path = '')
     {
@@ -117,7 +116,6 @@ class ClassLocator
      * @param ReflectionMethod $constructor
      * @param string $path
      * @return array
-     * @throws \RuntimeException
      */
     private function getArguments(ReflectionMethod $constructor, $path)
     {
