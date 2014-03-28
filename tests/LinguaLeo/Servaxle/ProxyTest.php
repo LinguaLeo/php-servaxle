@@ -26,6 +26,10 @@
 
 namespace LinguaLeo\Servaxle;
 
+use LinguaLeo\Servaxle\MortalCombat\Fighter;
+use LinguaLeo\Servaxle\MortalCombat\Battle;
+use LinguaLeo\Servaxle\MortalCombat\Arena\Portal;
+
 class ProxyTest extends \PHPUnit_Framework_TestCase
 {
     public function testSimpleProxy()
@@ -58,5 +62,23 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->assertSame($locator->foo, $locator->unique);
+    }
+
+    public function testRewriteProxyPath()
+    {
+        $locator = new ClassLocator(
+            [
+                'fighter' => Fighter::class,
+                'fighter.name' => 'Baraka',
+                'battle' => Battle::class,
+                'battle.fighter1' => Proxy::class,
+                'battle.fighter1.from' => 'fighter',
+                'battle.fighter2.name' => 'Kung Lao',
+                'battle.arena' => Portal::class
+            ]
+        );
+
+        $this->assertInstanceOf(Fighter::class, $locator->battle->getFighter1());
+        $this->assertSame($locator->fighter, $locator->battle->getFighter1());
     }
 }
