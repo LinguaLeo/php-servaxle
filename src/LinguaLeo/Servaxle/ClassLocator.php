@@ -152,7 +152,7 @@ class ClassLocator
         } catch (\ReflectionException $e) {
         }
         if (is_object($value) && method_exists($value, '__invoke')) {
-            $value = $value($this);
+            return $value($this);
         }
         return $value;
     }

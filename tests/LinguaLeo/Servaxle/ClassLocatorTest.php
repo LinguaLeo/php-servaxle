@@ -62,6 +62,12 @@ class ClassLocatorTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('foo', $locator->something);
     }
 
+    public function testNonCallableIdentifierAsAFunctionName()
+    {
+        $locator = new ClassLocator(['funcName' => 'sort']);
+        $this->assertSame('sort', $locator->funcName);
+    }
+
     /**
      * @expectedException \InvalidArgumentException
      * @expectedExceptionMessage Identifier "fighter.name" is undefined.
