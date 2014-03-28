@@ -151,7 +151,7 @@ class ClassLocator
             $value = $this->createInstance($value, $path);
         } catch (\ReflectionException $e) {
         }
-        if (is_callable($value)) {
+        if (is_object($value) && method_exists($value, '__invoke')) {
             $value = $value($this);
         }
         return $value;
