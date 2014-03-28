@@ -34,7 +34,7 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
 {
     public function testSimpleProxy()
     {
-        $locator = new ClassLocator(
+        $container = new DI(
             [
                 'foo' => Proxy::class,
                 'foo.from' => 'unique',
@@ -44,12 +44,12 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->assertSame($locator->foo, $locator->unique);
+        $this->assertSame($container->foo, $container->unique);
     }
 
     public function testProxyOnTwoLevels()
     {
-         $locator = new ClassLocator(
+         $container = new DI(
             [
                 'foo' => Proxy::class,
                 'foo.from' => 'bar',
@@ -61,12 +61,12 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->assertSame($locator->foo, $locator->unique);
+        $this->assertSame($container->foo, $container->unique);
     }
 
     public function testRewriteProxyPath()
     {
-        $locator = new ClassLocator(
+        $container = new DI(
             [
                 'fighter' => Fighter::class,
                 'fighter.name' => 'Baraka',
@@ -78,7 +78,43 @@ class ProxyTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->assertInstanceOf(Fighter::class, $locator->battle->getFighter1());
-        $this->assertSame($locator->fighter, $locator->battle->getFighter1());
+        $this->assertInstanceOf(Fighter::class, $container->battle->getFighter1());
+        $this->assertSame($container->fighter, $container->battle->getFighter1());
+    }
+
+    public function testDiggerProxy()
+    {
+        $container = new DI(
+            [
+                'foo' => [
+                    'bar' => [
+                        'baz' => 'quux'
+                    ]
+                ],
+                'unique' => Proxy::class,
+                'unique.from' => ['foo', 'bar', 'baz']
+            ]
+        );
+
+        $this->assertSame('quux', $container->unique);
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage The proxied fragment "baz" not found in the path "unique"
+     */
+    public function testFailedDiggerProxy()
+    {
+        $container = new DI(
+            [
+                'foo' => [
+                    'bar' => 'quux'
+                ],
+                'unique' => Proxy::class,
+                'unique.from' => ['foo', 'bar', 'baz']
+            ]
+        );
+
+        $container->unique;
     }
 }

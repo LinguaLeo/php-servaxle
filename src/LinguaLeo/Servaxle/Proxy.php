@@ -32,11 +32,20 @@ class Proxy
 
     public function __construct($from)
     {
-        $this->from = $from;
+        $this->from = (array) $from;
     }
 
-    public function __invoke(ClassLocator $locator)
+    public function __invoke(DI $container, $path)
     {
-        return $locator->{$this->from};
+        $value = $container->{reset($this->from)};
+
+        while ($key = next($this->from)) {
+            if (!isset($value[$key])) {
+                throw new \InvalidArgumentException(sprintf('The proxied fragment "%s" not found in the path "%s"', $key, $path));
+            }
+            $value = $value[$key];
+        }
+
+        return $value;
     }
 }

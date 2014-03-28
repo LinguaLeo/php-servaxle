@@ -34,7 +34,7 @@ use LinguaLeo\Servaxle\MortalCombat\ArenaInterface;
 use LinguaLeo\Servaxle\MortalCombat\Arena\Portal;
 use LinguaLeo\Servaxle\MortalCombat\Arena\LiveForest;
 
-class ClassLocatorTest extends \PHPUnit_Framework_TestCase
+class DITest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @expectedException \InvalidArgumentException
@@ -42,30 +42,41 @@ class ClassLocatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testUndefinedIdentifier()
     {
-        $locator = new ClassLocator();
-        $locator->something;
+        $container = new DI();
+        $container->something;
     }
 
     public function testSimpleIdentifier()
     {
-        $locator = new ClassLocator(['something' => 'foo']);
-        $this->assertSame('foo', $locator->something);
+        $container = new DI(['something' => 'foo']);
+        $this->assertSame('foo', $container->something);
     }
 
     public function testCallableIdentifier()
     {
-        $locator = new ClassLocator([
+        $container = new DI([
             'something' => function () {
                 return 'foo';
             }
         ]);
-        $this->assertSame('foo', $locator->something);
+        $this->assertSame('foo', $container->something);
+    }
+
+    public function testCallableWithParameters()
+    {
+        $container = new DI([
+            'foo' => 'something',
+            'bar' => function (DI $container, $path) {
+                return $container->foo.':'.$path;
+            }
+        ]);
+        $this->assertSame('something:bar', $container->bar);
     }
 
     public function testNonCallableIdentifierAsAFunctionName()
     {
-        $locator = new ClassLocator(['funcName' => 'sort']);
-        $this->assertSame('sort', $locator->funcName);
+        $container = new DI(['funcName' => 'sort']);
+        $this->assertSame('sort', $container->funcName);
     }
 
     /**
@@ -74,27 +85,27 @@ class ClassLocatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testFailedSharingWithoutValues()
     {
-        $locator = new ClassLocator(['fighter' => Fighter::class]);
-        $locator->fighter;
+        $container = new DI(['fighter' => Fighter::class]);
+        $container->fighter;
     }
 
     public function testSharingWithScalarParameterInConstructor()
     {
-        $locator = new ClassLocator(
+        $container = new DI(
             [
                 'fighter' => Fighter::class,
                 'fighter.name' => 'Baraka'
             ]
         );
-        $fighter = $locator->fighter;
+        $fighter = $container->fighter;
         $this->assertInstanceOf(Fighter::class, $fighter);
         $this->assertSame('Baraka', $fighter->getName());
     }
 
     public function testSharingWithoutConstructor()
     {
-        $locator = new ClassLocator(['arena' => Portal::class]);
-        $this->assertInstanceOf(Portal::class, $locator->arena);
+        $container = new DI(['arena' => Portal::class]);
+        $this->assertInstanceOf(Portal::class, $container->arena);
     }
 
     /**
@@ -103,24 +114,24 @@ class ClassLocatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testFailedSharingNonInstantiableClass()
     {
-        $locator = new ClassLocator(['arena' => ArenaInterface::class]);
-        $locator->arena;
+        $container = new DI(['arena' => ArenaInterface::class]);
+        $container->arena;
     }
 
     public function testSharingWithInterfaceImplementation()
     {
-        $locator = new ClassLocator(
+        $container = new DI(
             [
                 'arena' => ArenaInterface::class,
                 ArenaInterface::class => Portal::class
             ]
         );
-        $this->assertInstanceOf(Portal::class, $locator->arena);
+        $this->assertInstanceOf(Portal::class, $container->arena);
     }
 
     public function testSharingWithClassRewritingForParameter()
     {
-        $locator = new ClassLocator(
+        $container = new DI(
             [
                 'battle' => Battle::class,
                 'battle.fighter1' => DebugFighter::class,
@@ -131,13 +142,13 @@ class ClassLocatorTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->assertInstanceOf(DebugFighter::class, $locator->battle->getFighter1());
-        $this->assertInstanceOf(Fighter::class, $locator->battle->getFighter2());
+        $this->assertInstanceOf(DebugFighter::class, $container->battle->getFighter1());
+        $this->assertInstanceOf(Fighter::class, $container->battle->getFighter2());
     }
 
     public function testSharingWithFactory()
     {
-        $locator = new ClassLocator(
+        $container = new DI(
             [
                 'battle' => Battle::class,
                 'battle.fighter1' => FighterFactory::class,
@@ -150,9 +161,9 @@ class ClassLocatorTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->assertInstanceOf(DebugFighter::class, $locator->battle->getFighter1());
-        $this->assertSame('Scorpion', $locator->battle->getFighter1()->getName());
-        $this->assertInstanceOf(Fighter::class, $locator->battle->getFighter2());
-        $this->assertSame('Kabal', $locator->battle->getFighter2()->getName());
+        $this->assertInstanceOf(DebugFighter::class, $container->battle->getFighter1());
+        $this->assertSame('Scorpion', $container->battle->getFighter1()->getName());
+        $this->assertInstanceOf(Fighter::class, $container->battle->getFighter2());
+        $this->assertSame('Kabal', $container->battle->getFighter2()->getName());
     }
 }

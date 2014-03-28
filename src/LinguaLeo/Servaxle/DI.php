@@ -29,12 +29,12 @@ namespace LinguaLeo\Servaxle;
 use ReflectionClass;
 use ReflectionMethod;
 
-class ClassLocator
+class DI
 {
     private $values;
 
     /**
-     * Instantiates the locator.
+     * Instantiates the container.
      *
      * @param array $values
      */
@@ -152,7 +152,7 @@ class ClassLocator
         } catch (\ReflectionException $e) {
         }
         if (is_object($value) && method_exists($value, '__invoke')) {
-            return $value($this);
+            return $value($this, $path);
         }
         return $value;
     }
