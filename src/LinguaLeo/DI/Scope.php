@@ -91,13 +91,13 @@ class Scope
      * @param ReflectionClass $class
      * @param string $path
      * @return object
-     * @throws \RuntimeException
+     * @throws \UnexpectedValueException
      */
     private function newInstance(ReflectionClass $class, $path)
     {
         if (!$class->isInstantiable()) {
             if (empty($this->values[$class->name])) {
-                throw new \RuntimeException(sprintf('No implementation found for "%s" in the path "%s".', $class->name, $path));
+                throw new \UnexpectedValueException(sprintf('No implementation found for "%s" in the path "%s".', $class->name, $path));
             }
             return $this->reflectValue($this->values[$class->name], $path);
         }
@@ -165,12 +165,12 @@ class Scope
      *
      * @param string $value
      * @return mixed
-     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
     private function resolveSymlink($value)
     {
         if (empty($this->values[$value])) {
-            throw new \InvalidArgumentException(sprintf('Unknown %s symlink', $value));
+            throw new \UnexpectedValueException(sprintf('Unknown %s symlink', $value));
         }
         return $this->{$this->values[$value]};
     }

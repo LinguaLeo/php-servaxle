@@ -109,7 +109,7 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \RuntimeException
+     * @expectedException \UnexpectedValueException
      * @expectedExceptionMessage No implementation found for "LinguaLeo\DI\MortalCombat\ArenaInterface" in the path "arena".
      */
     public function testFailedSharingNonInstantiableClass()
@@ -183,7 +183,7 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \UnexpectedValueException
      * @expectedExceptionMessage Unknown @something symlink
      */
     public function testUnknownSymlink()
@@ -191,4 +191,23 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
         $scope = new Scope(['foo' => '@something']);
         $scope->foo;
     }
+
+    public function testSymlinkAgainstClassInstantiation()
+    {
+        $scope = new Scope(
+            [
+                'fighter' => Fighter::class,
+                'fighter.name' => 'Baraka',
+                'battle' => Battle::class,
+                'battle.fighter1' => '@hero',
+                '@hero' => 'fighter',
+                'battle.fighter2.name' => 'Kung Lao',
+                'battle.arena' => Portal::class
+            ]
+        );
+
+        $this->assertInstanceOf(Fighter::class, $scope->battle->getFighter1());
+        $this->assertSame($scope->fighter, $scope->battle->getFighter1());
+    }
+
 }
