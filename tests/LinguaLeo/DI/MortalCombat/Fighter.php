@@ -24,10 +24,19 @@
  * SOFTWARE.
  */
 
-namespace LinguaLeo\Servaxle\MortalCombat\Arena;
+namespace LinguaLeo\DI\MortalCombat;
 
-use LinguaLeo\Servaxle\MortalCombat\ArenaInterface;
-
-class Portal implements ArenaInterface
+class Fighter
 {
+    private $name;
+
+    public function __construct($name)
+    {
+        $this->name = $name;
+    }
+
+    public function getName()
+    {
+        return $this->name;
+    }
 }

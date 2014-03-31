@@ -24,17 +24,17 @@
  * SOFTWARE.
  */
 
-namespace LinguaLeo\Servaxle;
+namespace LinguaLeo\DI;
 
-use LinguaLeo\Servaxle\MortalCombat\Battle;
-use LinguaLeo\Servaxle\MortalCombat\Fighter;
-use LinguaLeo\Servaxle\MortalCombat\DebugFighter;
-use LinguaLeo\Servaxle\MortalCombat\Factory\FighterFactory;
-use LinguaLeo\Servaxle\MortalCombat\ArenaInterface;
-use LinguaLeo\Servaxle\MortalCombat\Arena\Portal;
-use LinguaLeo\Servaxle\MortalCombat\Arena\LiveForest;
+use LinguaLeo\DI\MortalCombat\Battle;
+use LinguaLeo\DI\MortalCombat\Fighter;
+use LinguaLeo\DI\MortalCombat\DebugFighter;
+use LinguaLeo\DI\MortalCombat\Factory\FighterFactory;
+use LinguaLeo\DI\MortalCombat\ArenaInterface;
+use LinguaLeo\DI\MortalCombat\Arena\Portal;
+use LinguaLeo\DI\MortalCombat\Arena\LiveForest;
 
-class DITest extends \PHPUnit_Framework_TestCase
+class ScopeTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @expectedException \InvalidArgumentException
@@ -42,41 +42,41 @@ class DITest extends \PHPUnit_Framework_TestCase
      */
     public function testUndefinedIdentifier()
     {
-        $container = new DI();
-        $container->something;
+        $scope = new Scope();
+        $scope->something;
     }
 
     public function testSimpleIdentifier()
     {
-        $container = new DI(['something' => 'foo']);
-        $this->assertSame('foo', $container->something);
+        $scope = new Scope(['something' => 'foo']);
+        $this->assertSame('foo', $scope->something);
     }
 
     public function testCallableIdentifier()
     {
-        $container = new DI([
+        $scope = new Scope([
             'something' => function () {
                 return 'foo';
             }
         ]);
-        $this->assertSame('foo', $container->something);
+        $this->assertSame('foo', $scope->something);
     }
 
     public function testCallableWithParameters()
     {
-        $container = new DI([
+        $scope = new Scope([
             'foo' => 'something',
-            'bar' => function (DI $container, $path) {
-                return $container->foo.':'.$path;
+            'bar' => function (Scope $scope, $path) {
+                return $scope->foo.':'.$path;
             }
         ]);
-        $this->assertSame('something:bar', $container->bar);
+        $this->assertSame('something:bar', $scope->bar);
     }
 
     public function testNonCallableIdentifierAsAFunctionName()
     {
-        $container = new DI(['funcName' => 'sort']);
-        $this->assertSame('sort', $container->funcName);
+        $scope = new Scope(['funcName' => 'sort']);
+        $this->assertSame('sort', $scope->funcName);
     }
 
     /**
@@ -85,53 +85,53 @@ class DITest extends \PHPUnit_Framework_TestCase
      */
     public function testFailedSharingWithoutValues()
     {
-        $container = new DI(['fighter' => Fighter::class]);
-        $container->fighter;
+        $scope = new Scope(['fighter' => Fighter::class]);
+        $scope->fighter;
     }
 
     public function testSharingWithScalarParameterInConstructor()
     {
-        $container = new DI(
+        $scope = new Scope(
             [
                 'fighter' => Fighter::class,
                 'fighter.name' => 'Baraka'
             ]
         );
-        $fighter = $container->fighter;
+        $fighter = $scope->fighter;
         $this->assertInstanceOf(Fighter::class, $fighter);
         $this->assertSame('Baraka', $fighter->getName());
     }
 
     public function testSharingWithoutConstructor()
     {
-        $container = new DI(['arena' => Portal::class]);
-        $this->assertInstanceOf(Portal::class, $container->arena);
+        $scope = new Scope(['arena' => Portal::class]);
+        $this->assertInstanceOf(Portal::class, $scope->arena);
     }
 
     /**
      * @expectedException \RuntimeException
-     * @expectedExceptionMessage No implementation found for "LinguaLeo\Servaxle\MortalCombat\ArenaInterface" in the path "arena".
+     * @expectedExceptionMessage No implementation found for "LinguaLeo\DI\MortalCombat\ArenaInterface" in the path "arena".
      */
     public function testFailedSharingNonInstantiableClass()
     {
-        $container = new DI(['arena' => ArenaInterface::class]);
-        $container->arena;
+        $scope = new Scope(['arena' => ArenaInterface::class]);
+        $scope->arena;
     }
 
     public function testSharingWithInterfaceImplementation()
     {
-        $container = new DI(
+        $scope = new Scope(
             [
                 'arena' => ArenaInterface::class,
                 ArenaInterface::class => Portal::class
             ]
         );
-        $this->assertInstanceOf(Portal::class, $container->arena);
+        $this->assertInstanceOf(Portal::class, $scope->arena);
     }
 
     public function testSharingWithClassRewritingForParameter()
     {
-        $container = new DI(
+        $scope = new Scope(
             [
                 'battle' => Battle::class,
                 'battle.fighter1' => DebugFighter::class,
@@ -142,13 +142,13 @@ class DITest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->assertInstanceOf(DebugFighter::class, $container->battle->getFighter1());
-        $this->assertInstanceOf(Fighter::class, $container->battle->getFighter2());
+        $this->assertInstanceOf(DebugFighter::class, $scope->battle->getFighter1());
+        $this->assertInstanceOf(Fighter::class, $scope->battle->getFighter2());
     }
 
     public function testSharingWithFactory()
     {
-        $container = new DI(
+        $scope = new Scope(
             [
                 'battle' => Battle::class,
                 'battle.fighter1' => FighterFactory::class,
@@ -161,9 +161,34 @@ class DITest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->assertInstanceOf(DebugFighter::class, $container->battle->getFighter1());
-        $this->assertSame('Scorpion', $container->battle->getFighter1()->getName());
-        $this->assertInstanceOf(Fighter::class, $container->battle->getFighter2());
-        $this->assertSame('Kabal', $container->battle->getFighter2()->getName());
+        $this->assertInstanceOf(DebugFighter::class, $scope->battle->getFighter1());
+        $this->assertSame('Scorpion', $scope->battle->getFighter1()->getName());
+        $this->assertInstanceOf(Fighter::class, $scope->battle->getFighter2());
+        $this->assertSame('Kabal', $scope->battle->getFighter2()->getName());
+    }
+
+    public function testSymlink()
+    {
+        $scope = new Scope(
+            [
+                'foo' => function () {
+                    return uniqid();
+                },
+                'bar' => '@something',
+                '@something' => 'foo'
+            ]
+        );
+
+        $this->assertSame($scope->foo, $scope->bar);
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Unknown @something symlink
+     */
+    public function testUnknownSymlink()
+    {
+        $scope = new Scope(['foo' => '@something']);
+        $scope->foo;
     }
 }

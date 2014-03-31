@@ -2,8 +2,8 @@
 <phpunit bootstrap="tests/bootstrap.php" colors="true" convertWarningsToExceptions="false">
 
     <testsuites>
-        <testsuite name="Servaxle">
-            <directory>tests/LinguaLeo/Servaxle</directory>
+        <testsuite name="DI">
+            <directory>tests/LinguaLeo/DI</directory>
         </testsuite>
     </testsuites>
 
@@ -14,7 +14,7 @@
     </filter>
 
     <logging>
-        <log type="coverage-html" target="build/coverage" title="LinguaLeo Servaxle"
+        <log type="coverage-html" target="build/coverage" title="LinguaLeo DI"
              charset="UTF-8" yui="true" highlight="true"
              lowUpperBound="35" highLowerBound="70" />
     </logging>

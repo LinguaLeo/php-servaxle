@@ -24,21 +24,10 @@
  * SOFTWARE.
  */
 
-namespace LinguaLeo\Servaxle\MortalCombat\Arena;
+namespace LinguaLeo\DI\MortalCombat\Arena;
 
-use LinguaLeo\Servaxle\MortalCombat\ArenaInterface;
+use LinguaLeo\DI\MortalCombat\ArenaInterface;
 
-class LiveForest implements ArenaInterface
+class Portal implements ArenaInterface
 {
-    private $season;
-
-    public function __construct($season)
-    {
-        $this->season = $season;
-    }
-
-    public function getSeason()
-    {
-        return $this->season;
-    }
 }

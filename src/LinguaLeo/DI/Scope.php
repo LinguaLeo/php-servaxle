@@ -24,12 +24,12 @@
  * SOFTWARE.
  */
 
-namespace LinguaLeo\Servaxle;
+namespace LinguaLeo\DI;
 
 use ReflectionClass;
 use ReflectionMethod;
 
-class DI
+class Scope
 {
     private $values;
 
@@ -154,6 +154,24 @@ class DI
         if (is_object($value) && method_exists($value, '__invoke')) {
             return $value($this, $path);
         }
+        if (is_string($value) && '@' === $value[0]) {
+            return $this->resolveSymlink($value);
+        }
         return $value;
+    }
+
+    /**
+     * Resolves a symlink.
+     *
+     * @param string $value
+     * @return mixed
+     * @throws \InvalidArgumentException
+     */
+    private function resolveSymlink($value)
+    {
+        if (empty($this->values[$value])) {
+            throw new \InvalidArgumentException(sprintf('Unknown %s symlink', $value));
+        }
+        return $this->{$this->values[$value]};
     }
 }

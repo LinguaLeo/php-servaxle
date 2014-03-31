@@ -24,19 +24,28 @@
  * SOFTWARE.
  */
 
-namespace LinguaLeo\Servaxle\MortalCombat;
+namespace LinguaLeo\DI\MortalCombat\Factory;
 
-class Fighter
+use LinguaLeo\DI\MortalCombat\Fighter;
+use LinguaLeo\DI\MortalCombat\DebugFighter;
+
+class FighterFactory
 {
+    private $isDebug;
     private $name;
 
-    public function __construct($name)
+    public function __construct($isDebug, $name)
     {
+        $this->isDebug = $isDebug;
         $this->name = $name;
     }
 
-    public function getName()
+    public function __invoke()
     {
-        return $this->name;
+        if ($this->isDebug) {
+            return new DebugFighter($this->name);
+        } else {
+            return new Fighter($this->name);
+        }
     }
 }

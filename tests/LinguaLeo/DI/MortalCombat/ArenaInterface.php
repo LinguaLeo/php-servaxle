@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-namespace LinguaLeo\Servaxle\MortalCombat;
+namespace LinguaLeo\DI\MortalCombat;
 
 interface ArenaInterface
 {

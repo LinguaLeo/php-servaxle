@@ -24,28 +24,21 @@
  * SOFTWARE.
  */
 
-namespace LinguaLeo\Servaxle\MortalCombat\Factory;
+namespace LinguaLeo\DI\MortalCombat\Arena;
 
-use LinguaLeo\Servaxle\MortalCombat\Fighter;
-use LinguaLeo\Servaxle\MortalCombat\DebugFighter;
+use LinguaLeo\DI\MortalCombat\ArenaInterface;
 
-class FighterFactory
+class LiveForest implements ArenaInterface
 {
-    private $isDebug;
-    private $name;
+    private $season;
 
-    public function __construct($isDebug, $name)
+    public function __construct($season)
     {
-        $this->isDebug = $isDebug;
-        $this->name = $name;
+        $this->season = $season;
     }
 
-    public function __invoke()
+    public function getSeason()
     {
-        if ($this->isDebug) {
-            return new DebugFighter($this->name);
-        } else {
-            return new Fighter($this->name);
-        }
+        return $this->season;
     }
 }
