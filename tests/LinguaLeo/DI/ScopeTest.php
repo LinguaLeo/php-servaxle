@@ -60,10 +60,10 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
         );
         $token = $scope->tokenize('something');
         $this->assertInstanceOf(ScalarToken::class, $token);
-        $this->assertSame("array (
+        $this->assertSame("function () { return array (
   'foo' => 'hello',
   'bar' => 'world',
-)", $token->getScript());
+); }", $token->getBinding());
     }
 
     /**

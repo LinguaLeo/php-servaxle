@@ -40,7 +40,10 @@ class ScalarToken implements TokenInterface
 
     public function getBinding()
     {
-        return $this->getScript();
+        if (is_scalar($this->value)) {
+            return $this->getScript();
+        }
+        return "function () { return $this; }";
     }
 
     public function getScript()

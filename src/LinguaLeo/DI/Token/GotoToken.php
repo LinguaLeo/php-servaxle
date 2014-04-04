@@ -40,7 +40,7 @@ class GotoToken implements TokenInterface
 
     public function getBinding()
     {
-        return "function (\$scope) { return {$this->getScript()}; }";
+        return "function (\$scope) { return $this; }";
     }
 
     public function getScript()
