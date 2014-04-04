@@ -26,70 +26,50 @@
 
 namespace LinguaLeo\DI;
 
-use LinguaLeo\DI\MortalCombat\Battle;
 use LinguaLeo\DI\MortalCombat\Fighter;
-use LinguaLeo\DI\MortalCombat\DebugFighter;
-use LinguaLeo\DI\MortalCombat\Factory\FighterFactory;
-use LinguaLeo\DI\MortalCombat\ArenaInterface;
 use LinguaLeo\DI\MortalCombat\Arena\Portal;
+use LinguaLeo\DI\MortalCombat\ArenaInterface;
+use LinguaLeo\DI\MortalCombat\DebugFighter;
 use LinguaLeo\DI\MortalCombat\Arena\LiveForest;
+use LinguaLeo\DI\MortalCombat\Battle;
+use LinguaLeo\DI\MortalCombat\Factory\FighterFactory;
+
+use LinguaLeo\DI\Token\ScalarToken;
+use LinguaLeo\DI\Token\ClassToken;
 
 class ScopeTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Identifier "something" is undefined.
-     */
-    public function testUndefinedIdentifier()
-    {
-        $scope = new Scope();
-        $scope->something;
-    }
-
     public function testSimpleIdentifier()
     {
         $scope = new Scope(['something' => 'foo']);
-        $this->assertSame('foo', $scope->something);
+        $token = $scope->tokenize('something');
+        $this->assertInstanceOf(ScalarToken::class, $token);
+        $this->assertSame("'foo'", $token->getScript());
+        $this->assertSame("'foo'", $token->getBinding());
     }
 
-    public function testCallableIdentifier()
+    /**
+     * @expectedException \LinguaLeo\DI\Exception\ClosureSerializationException
+     * @expectedExceptionMessage Serialization of Closure "something" is not allowed
+     */
+    public function testClosureIdentifier()
     {
         $scope = new Scope([
             'something' => function () {
                 return 'foo';
             }
         ]);
-        $this->assertSame('foo', $scope->something);
-    }
-
-    public function testCallableWithParameters()
-    {
-        $scope = new Scope([
-            'foo' => 'something',
-            'bar' => function (Scope $scope, $path) {
-                return $scope->foo.':'.$path;
-            }
-        ]);
-        $this->assertSame('something:bar', $scope->bar);
+        $scope->tokenize('something');
     }
 
     public function testNonCallableIdentifierAsAFunctionName()
     {
         $scope = new Scope(['funcName' => 'sort']);
-        $this->assertSame('sort', $scope->funcName);
+        $token = $scope->tokenize('funcName');
+        $this->assertInstanceOf(ScalarToken::class, $token);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Identifier "fighter.name" is undefined.
-     */
-    public function testFailedSharingWithoutValues()
-    {
-        $scope = new Scope(['fighter' => Fighter::class]);
-        $scope->fighter;
-    }
-
-    public function testSharingWithScalarParameterInConstructor()
+    public function testClassTokenization()
     {
         $scope = new Scope(
             [
@@ -97,28 +77,40 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
                 'fighter.name' => 'Baraka'
             ]
         );
-        $fighter = $scope->fighter;
-        $this->assertInstanceOf(Fighter::class, $fighter);
-        $this->assertSame('Baraka', $fighter->getName());
+
+        $token = $scope->tokenize('fighter');
+        $this->assertInstanceOf(ClassToken::class, $token);
+        $this->assertSame("new \LinguaLeo\DI\MortalCombat\Fighter('Baraka')", $token->getScript());
     }
 
-    public function testSharingWithoutConstructor()
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Identifier "fighter.name" is not defined.
+     */
+    public function testFailedSharingWithoutValues()
+    {
+        $scope = new Scope(['fighter' => Fighter::class]);
+        $scope->tokenize('fighter');
+    }
+
+    public function testClassTokenizationWithoutConstructor()
     {
         $scope = new Scope(['arena' => Portal::class]);
-        $this->assertInstanceOf(Portal::class, $scope->arena);
+        $token = $scope->tokenize('arena');
+        $this->assertSame('new \LinguaLeo\DI\MortalCombat\Arena\Portal', $token->getScript());
     }
 
     /**
      * @expectedException \UnexpectedValueException
      * @expectedExceptionMessage No implementation found for "LinguaLeo\DI\MortalCombat\ArenaInterface" in the path "arena".
      */
-    public function testFailedSharingNonInstantiableClass()
+    public function testFailedTokenizationNonInstantiableClass()
     {
         $scope = new Scope(['arena' => ArenaInterface::class]);
-        $scope->arena;
+        $scope->tokenize('arena');
     }
 
-    public function testSharingWithInterfaceImplementation()
+    public function testTokenizationWithInterfaceImplementation()
     {
         $scope = new Scope(
             [
@@ -126,10 +118,11 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
                 ArenaInterface::class => Portal::class
             ]
         );
-        $this->assertInstanceOf(Portal::class, $scope->arena);
+        $token = $scope->tokenize('arena');
+        $this->assertSame('new \LinguaLeo\DI\MortalCombat\Arena\Portal', $token->getScript());
     }
 
-    public function testSharingWithClassRewritingForParameter()
+    public function testTokenizationClassWithParameterRewriting()
     {
         $scope = new Scope(
             [
@@ -141,13 +134,15 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
                 ArenaInterface::class => LiveForest::class
             ]
         );
-
-        $this->assertInstanceOf(DebugFighter::class, $scope->battle->getFighter1());
-        $this->assertInstanceOf(Fighter::class, $scope->battle->getFighter2());
+        $token = $scope->tokenize('battle');
+        $this->assertSame("new \LinguaLeo\DI\MortalCombat\Battle(new \LinguaLeo\DI\MortalCombat\DebugFighter('Baraka', 0), new \LinguaLeo\DI\MortalCombat\Fighter('Kung Lao'), new \LinguaLeo\DI\MortalCombat\Arena\LiveForest('Winter'))", $token->getScript());
     }
 
-    public function testSharingWithFactory()
+
+    public function testTokenizationWithFactory()
     {
+        $expectedScript = "new \LinguaLeo\DI\MortalCombat\Battle(call_user_func(new \LinguaLeo\DI\MortalCombat\Factory\FighterFactory(true, 'Scorpion'), \$scope, 'battle.fighter1'), call_user_func(new \LinguaLeo\DI\MortalCombat\Factory\FighterFactory(false, 'Kabal'), \$scope, 'battle.fighter2'), new \LinguaLeo\DI\MortalCombat\Arena\Portal)";
+
         $scope = new Scope(
             [
                 'battle' => Battle::class,
@@ -161,53 +156,147 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->assertInstanceOf(DebugFighter::class, $scope->battle->getFighter1());
-        $this->assertSame('Scorpion', $scope->battle->getFighter1()->getName());
-        $this->assertInstanceOf(Fighter::class, $scope->battle->getFighter2());
-        $this->assertSame('Kabal', $scope->battle->getFighter2()->getName());
+        $token = $scope->tokenize('battle');
+
+        $this->assertSame($expectedScript, $token->getScript());
+        $this->assertSame("function (\$scope) { return $expectedScript; }", $token->getBinding());
     }
 
-    public function testSymlink()
+    public function testTokenizeSymlink()
+    {
+        $scope = new Scope(
+            [
+                '@foo' => 'something',
+                'bar' => '@foo'
+            ]
+        );
+        $token = $scope->tokenize('bar');
+        $this->assertSame('$scope->something', $token->getScript());
+        $this->assertSame('function ($scope) { return $scope->something; }', $token->getBinding());
+    }
+
+    /**
+     * @expectedException \UnexpectedValueException
+     * @expectedExceptionMessage Unknown @foo symlink
+     */
+    public function testTokenizeUndefinedSymlink()
+    {
+        $scope = new Scope(['bar' => '@foo']);
+        $scope->tokenize('bar');
+    }
+
+    public function testTokenizeVariable()
+    {
+        $scope = new Scope(
+            [
+                'foo' => 'something',
+                'bar' => '$foo'
+            ]
+        );
+        $token = $scope->tokenize('bar');
+        $this->assertSame('$scope->foo', $token->getScript());
+        $this->assertSame('function ($scope) { return $scope->foo; }', $token->getBinding());
+    }
+
+    public function testGotoTokenFromRecursiveArguments()
+    {
+        $expectedScript = 'new \LinguaLeo\DI\MortalCombat\Arena\LiveForest($scope->season)';
+        $scope = new Scope(
+            [
+                'season' => 'Summer',
+                'portal' => LiveForest::class,
+                'portal.season' => '$season'
+            ]
+        );
+        $token = $scope->tokenize('portal');
+        $this->assertSame($expectedScript, $token->getScript());
+        $this->assertSame("function (\$scope) { return $expectedScript; }", $token->getBinding());
+    }
+
+    /**
+     * @expectedException \UnexpectedValueException
+     * @expectedExceptionMessage Unknown "foo" variable
+     */
+    public function testTokenizeUndefinedVariable()
+    {
+        $scope = new Scope(['bar' => '$foo']);
+        $scope->tokenize('bar');
+    }
+
+    public function testTokenizeVariableByInterface()
+    {
+        $scope = new Scope(
+            [
+                'portal' => Portal::class,
+                'arena' => ArenaInterface::class,
+                ArenaInterface::class => '$portal'
+            ]
+        );
+        $token = $scope->tokenize('arena');
+        $this->assertSame('$scope->portal', $token->getScript());
+    }
+
+    public function testGetValueFromScalarToken()
+    {
+        $scope = new Scope(['foo' => 'bar']);
+        $this->assertSame('bar', $scope->getValue('foo'));
+    }
+
+    public function testGetValueAsGotoToken()
+    {
+        $scope = new Scope(
+            [
+                'something' => 'foo',
+                'bar' => '$something'
+            ]
+        );
+        $this->assertSame('foo', $scope->getValue('bar'));
+    }
+
+    public function testGetValueAsCallback()
     {
         $scope = new Scope(
             [
                 'foo' => function () {
                     return uniqid();
-                },
-                'bar' => '@something',
-                '@something' => 'foo'
+                }
             ]
         );
-
-        $this->assertSame($scope->foo, $scope->bar);
+        $this->assertSame($scope->foo, $scope->foo);
     }
 
-    /**
-     * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessage Unknown @something symlink
-     */
-    public function testUnknownSymlink()
-    {
-        $scope = new Scope(['foo' => '@something']);
-        $scope->foo;
-    }
-
-    public function testSymlinkAgainstClassInstantiation()
+    public function testGetValueFromClassToken()
     {
         $scope = new Scope(
             [
                 'fighter' => Fighter::class,
-                'fighter.name' => 'Baraka',
-                'battle' => Battle::class,
-                'battle.fighter1' => '@hero',
-                '@hero' => 'fighter',
-                'battle.fighter2.name' => 'Kung Lao',
-                'battle.arena' => Portal::class
+                'fighter.name' => 'Baraka'
             ]
         );
-
-        $this->assertInstanceOf(Fighter::class, $scope->battle->getFighter1());
-        $this->assertSame($scope->fighter, $scope->battle->getFighter1());
+        $this->assertInstanceOf(Fighter::class, $scope->fighter);
+        $this->assertSame('Baraka', $scope->fighter->getName());
     }
 
+    public function testGetValueFromClassTokenWithoutConstructor()
+    {
+        $scope = new Scope(
+            [
+                'portal' => Portal::class
+            ]
+        );
+        $this->assertInstanceOf(Portal::class, $scope->portal);
+    }
+
+    public function testGetValueFromClassFactory()
+    {
+        $scope = new Scope(
+            [
+                'fighter' => FighterFactory::class,
+                'fighter.isDebug' => true,
+                'fighter.name' => 'Scorpion',
+            ]
+        );
+        $this->assertInstanceOf(Fighter::class, $scope->fighter);
+        $this->assertSame('Scorpion', $scope->fighter->getName());
+    }
 }
