@@ -35,7 +35,7 @@ class ImmutableScopeTest extends \PHPUnit_Framework_TestCase
 {
     private function inBrackets()
     {
-        return '['.PHP_EOL.implode(PHP_EOL, func_get_args()).PHP_EOL.']';
+        return '['.PHP_EOL.implode(','.PHP_EOL, func_get_args()).','.PHP_EOL.']';
     }
 
     public function provideValuesForCompilation()
@@ -43,7 +43,7 @@ class ImmutableScopeTest extends \PHPUnit_Framework_TestCase
         return [
             [
                 ['foo' => 'bar'],
-                $this->inBrackets("'foo' => 'bar', // bar")
+                $this->inBrackets("'foo' => 'bar'")
             ],
             [
                 [
@@ -51,8 +51,8 @@ class ImmutableScopeTest extends \PHPUnit_Framework_TestCase
                     'fighter.name' => 'Baraka'
                 ],
                 $this->inBrackets(
-                    "'fighter' => function (\$scope) { return new \LinguaLeo\DI\MortalCombat\Fighter('Baraka'); }, // LinguaLeo\DI\MortalCombat\Fighter",
-                    "'fighter.name' => 'Baraka', // Baraka"
+                    "'fighter' => function (\$scope) { return new \LinguaLeo\DI\MortalCombat\Fighter('Baraka'); }",
+                    "'fighter.name' => 'Baraka'"
                 )
             ],
             [
@@ -61,7 +61,7 @@ class ImmutableScopeTest extends \PHPUnit_Framework_TestCase
                     ArenaInterface::class => Portal::class
                 ],
                 $this->inBrackets(
-                    "'arena' => function (\$scope) { return new \LinguaLeo\DI\MortalCombat\Arena\Portal; }, // LinguaLeo\DI\MortalCombat\ArenaInterface"
+                    "'arena' => function (\$scope) { return new \LinguaLeo\DI\MortalCombat\Arena\Portal; }"
                 )
             ],
             [
@@ -71,9 +71,9 @@ class ImmutableScopeTest extends \PHPUnit_Framework_TestCase
                     'fighter.name' => 'Scorpion',
                 ],
                 $this->inBrackets(
-                    "'fighter' => function (\$scope) { return call_user_func(new \LinguaLeo\DI\MortalCombat\Factory\FighterFactory(true, 'Scorpion'), \$scope, 'fighter'); }, // LinguaLeo\DI\MortalCombat\Factory\FighterFactory",
-                    "'fighter.isDebug' => true, // 1",
-                    "'fighter.name' => 'Scorpion', // Scorpion"
+                    "'fighter' => function (\$scope) { return call_user_func(new \LinguaLeo\DI\MortalCombat\Factory\FighterFactory(true, 'Scorpion'), \$scope, 'fighter'); }",
+                    "'fighter.isDebug' => true",
+                    "'fighter.name' => 'Scorpion'"
                 )
             ],
             [
@@ -82,8 +82,8 @@ class ImmutableScopeTest extends \PHPUnit_Framework_TestCase
                     'bar' => '$something'
                 ],
                 $this->inBrackets(
-                    "'something' => 'foo', // foo",
-                    "'bar' => function (\$scope) { return \$scope->something; }, // \$something"
+                    "'something' => 'foo'",
+                    "'bar' => function (\$scope) { return \$scope->something; }"
                 )
             ]
         ];

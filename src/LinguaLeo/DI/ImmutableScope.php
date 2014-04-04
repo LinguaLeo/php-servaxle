@@ -58,7 +58,7 @@ class ImmutableScope extends Scope
             if (class_exists($id) || interface_exists($id)) {
                 continue;
             }
-            $script .= "'$id' => ".$this->tokenize($id)->getBinding().', // '.$value.PHP_EOL;
+            $script .= "'$id' => ".$this->parseToken($value, $id)->getBinding().','.PHP_EOL;
         }
         return $script.']';
     }

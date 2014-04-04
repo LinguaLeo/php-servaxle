@@ -116,7 +116,7 @@ class Scope
      * @return \LinguaLeo\DI\TokenInterface
      * @throws \LinguaLeo\DI\Exception\ClosureSerializationException
      */
-    private function parseToken($value, $id)
+    protected function parseToken($value, $id)
     {
         if (is_object($value) && $value instanceof \Closure) {
             throw new ClosureSerializationException(sprintf('Serialization of Closure "%s" is not allowed', $id));
