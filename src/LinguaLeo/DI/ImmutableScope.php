@@ -55,7 +55,7 @@ class ImmutableScope extends Scope
     {
         $script = '['.PHP_EOL;
         foreach ($this->values as $id => $value) {
-            if (class_exists($id) || interface_exists($id)) {
+            if (interface_exists($id)) {
                 continue;
             }
             $script .= "'$id' => ".$this->parseToken($value, $id)->getBinding().','.PHP_EOL;
