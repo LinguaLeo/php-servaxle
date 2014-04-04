@@ -63,7 +63,7 @@ class Scope
     {
         try {
             $token = $this->tokenize($id);
-        } catch (ClosureSerializationException $e) {
+        } catch (ClosureSerializationException $ex) {
             return $this->values[$id]($this, $id);
         }
         return $token->newInstance($this);
@@ -126,12 +126,13 @@ class Scope
                 case '@': return $this->getSymlinkToken($value);
                 case '$': return $this->getVariableToken(substr($value, 1));
             }
+            try {
+                return $this->getClassToken(new ReflectionClass($value), $id);
+            } catch (\ReflectionException $ex) {
+                // OK! The value is not a class.
+            }
         }
-        try {
-            return $this->getClassToken(new ReflectionClass($value), $id);
-        } catch (\ReflectionException $ex) {
-            return new ScalarToken($value);
-        }
+        return new ScalarToken($value);
     }
 
     /**
@@ -149,13 +150,13 @@ class Scope
             $anchor = $id.'.'.$parameter->name;
             try {
                 $token = $this->tokenize($anchor);
-            } catch (\InvalidArgumentException $e) {
+            } catch (\InvalidArgumentException $ex) {
                 if (($parameterClass = $parameter->getClass())) {
                     $token = $this->getClassToken($parameterClass, $anchor);
                 } elseif ($parameter->isDefaultValueAvailable()) {
                     $token = new ScalarToken($parameter->getDefaultValue());
                 } else {
-                    throw $e;
+                    throw $ex;
                 }
             }
             $args[] = $token;

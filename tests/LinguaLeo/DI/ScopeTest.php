@@ -48,6 +48,24 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
         $this->assertSame("'foo'", $token->getBinding());
     }
 
+    public function testScalarValueAsArray()
+    {
+        $scope = new Scope(
+            [
+                'something' => [
+                    'foo' => 'hello',
+                    'bar' => 'world'
+                ]
+            ]
+        );
+        $token = $scope->tokenize('something');
+        $this->assertInstanceOf(ScalarToken::class, $token);
+        $this->assertSame("array (
+  'foo' => 'hello',
+  'bar' => 'world',
+)", $token->getScript());
+    }
+
     /**
      * @expectedException \LinguaLeo\DI\Exception\ClosureSerializationException
      * @expectedExceptionMessage Serialization of Closure "something" is not allowed
