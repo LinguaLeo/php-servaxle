@@ -94,6 +94,9 @@ class Scope
      */
     private function getClassToken(ReflectionClass $class, $id)
     {
+        if (!$class->inNamespace()) {
+            throw new \ReflectionException(sprintf('No namespace found for the class "%s"', $class->name));
+        }
         if (!$class->isInstantiable()) {
             if (empty($this->values[$class->name])) {
                 throw new \UnexpectedValueException(sprintf('No implementation found for "%s" in the path "%s".', $class->name, $id));
@@ -129,7 +132,7 @@ class Scope
             try {
                 return $this->getClassToken(new ReflectionClass($value), $id);
             } catch (\ReflectionException $ex) {
-                // OK! The value is not a class.
+                error_log($ex->getMessage(), E_USER_WARNING);
             }
         }
         return new ScalarToken($value);

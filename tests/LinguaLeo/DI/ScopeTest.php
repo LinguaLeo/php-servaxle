@@ -101,6 +101,13 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
         $this->assertSame("new \LinguaLeo\DI\MortalCombat\Fighter('Baraka')", $token->getScript());
     }
 
+    public function testClassNotInNamespaceTokenization()
+    {
+        $scope = new Scope(['std' => \stdClass::class]);
+        $token = $scope->tokenize('std');
+        $this->assertInstanceOf(ScalarToken::class, $token);
+    }
+
     /**
      * @expectedException \InvalidArgumentException
      * @expectedExceptionMessage Identifier "fighter.name" is not defined.
