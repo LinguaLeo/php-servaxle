@@ -132,7 +132,7 @@ class Scope
             try {
                 return $this->getClassToken(new ReflectionClass($value), $id);
             } catch (\ReflectionException $ex) {
-                error_log($ex->getMessage(), E_USER_WARNING);
+                trigger_error($ex->getMessage(), E_USER_WARNING);
             }
         }
         return new ScalarToken($value);
