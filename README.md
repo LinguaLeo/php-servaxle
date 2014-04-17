@@ -98,7 +98,7 @@ The scope parses dependencies every time when you call `getValue` method. But if
 ```php
 $scope = new LinguaLeo\DI\Scope([
     'now' => function () {
-        return time();
+        return uniqid();
     }
 ]);
 
