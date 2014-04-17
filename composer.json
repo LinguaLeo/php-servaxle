@@ -1,5 +1,7 @@
 {
     "name": "lingualeo/php-servaxle",
+    "description": "Servaxle is a fast Dependency Injection Container for PHP",
+    "keywords": ["dependency injection", "container"],
     "license": "MIT",
     "authors": [
         {

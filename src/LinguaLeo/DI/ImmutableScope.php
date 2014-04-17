@@ -44,22 +44,4 @@ class ImmutableScope extends Scope
         $isFactory = is_object($value) && method_exists($value, '__invoke');
         return $isFactory ? $value($this, $id) : $value;
     }
-
-    /**
-     * Compiles values into php script.
-     *
-     * @param array $values
-     * @return string
-     */
-    public function compile()
-    {
-        $script = '['.PHP_EOL;
-        foreach ($this->values as $id => $value) {
-            if (interface_exists($id)) {
-                continue;
-            }
-            $script .= "'$id' => ".$this->parseToken($value, $id)->getBinding().','.PHP_EOL;
-        }
-        return $script.']';
-    }
 }

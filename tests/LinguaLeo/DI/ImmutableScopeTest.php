@@ -26,78 +26,8 @@
 
 namespace LinguaLeo\DI;
 
-use LinguaLeo\DI\MortalCombat\Fighter;
-use LinguaLeo\DI\MortalCombat\ArenaInterface;
-use LinguaLeo\DI\MortalCombat\Arena\Portal;
-use LinguaLeo\DI\MortalCombat\Factory\FighterFactory;
-
 class ImmutableScopeTest extends \PHPUnit_Framework_TestCase
 {
-    private function inBrackets()
-    {
-        return '['.PHP_EOL.implode(','.PHP_EOL, func_get_args()).','.PHP_EOL.']';
-    }
-
-    public function provideValuesForCompilation()
-    {
-        return [
-            [
-                ['foo' => 'bar'],
-                $this->inBrackets("'foo' => 'bar'")
-            ],
-            [
-                [
-                    'fighter' => Fighter::class,
-                    'fighter.name' => 'Baraka'
-                ],
-                $this->inBrackets(
-                    "'fighter' => function (\$scope) { return new \LinguaLeo\DI\MortalCombat\Fighter('Baraka'); }",
-                    "'fighter.name' => 'Baraka'"
-                )
-            ],
-            [
-                [
-                    'arena' => ArenaInterface::class,
-                    ArenaInterface::class => Portal::class
-                ],
-                $this->inBrackets(
-                    "'arena' => function (\$scope) { return new \LinguaLeo\DI\MortalCombat\Arena\Portal; }"
-                )
-            ],
-            [
-                [
-                    'fighter' => FighterFactory::class,
-                    'fighter.isDebug' => true,
-                    'fighter.name' => 'Scorpion',
-                ],
-                $this->inBrackets(
-                    "'fighter' => function (\$scope) { return call_user_func(new \LinguaLeo\DI\MortalCombat\Factory\FighterFactory(true, 'Scorpion'), \$scope, 'fighter'); }",
-                    "'fighter.isDebug' => true",
-                    "'fighter.name' => 'Scorpion'"
-                )
-            ],
-            [
-                [
-                    'something' => 'foo',
-                    'bar' => '$something'
-                ],
-                $this->inBrackets(
-                    "'something' => 'foo'",
-                    "'bar' => function (\$scope) { return \$scope->something; }"
-                )
-            ]
-        ];
-    }
-
-    /**
-     * @dataProvider provideValuesForCompilation
-     */
-    public function testCompileSimple($values, $compiledScript)
-    {
-        $scope = new ImmutableScope($values);
-        $this->assertSame($compiledScript, $scope->compile());
-    }
-
     public function testCallableValue()
     {
         $scope = new ImmutableScope([

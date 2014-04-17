@@ -132,7 +132,7 @@ class Scope
             try {
                 return $this->getClassToken(new ReflectionClass($value), $id);
             } catch (\ReflectionException $ex) {
-                trigger_error($ex->getMessage(), E_USER_WARNING);
+                trigger_error($ex->getMessage(), E_USER_NOTICE);
             }
         }
         return new ScalarToken($value);
@@ -195,5 +195,24 @@ class Scope
             throw new \UnexpectedValueException(sprintf('Unknown "%s" variable', $id));
         }
         return new GotoToken($id);
+    }
+
+    /**
+     * Compiles values into php script.
+     *
+     * @param array $values
+     * @return string
+     */
+    public static function compile(array $values)
+    {
+        $scope = new self($values);
+        $script = '['.PHP_EOL;
+        foreach ($scope->values as $id => $value) {
+            if (interface_exists($id)) {
+                continue;
+            }
+            $script .= "'$id' => ".$scope->parseToken($value, $id)->getBinding().','.PHP_EOL;
+        }
+        return $script.']';
     }
 }
