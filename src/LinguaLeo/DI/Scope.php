@@ -28,6 +28,7 @@ namespace LinguaLeo\DI;
 
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionParameter;
 use LinguaLeo\DI\Token\ClassToken;
 use LinguaLeo\DI\Token\ScalarToken;
 use LinguaLeo\DI\Token\GotoToken;
@@ -132,7 +133,7 @@ class Scope
             try {
                 return $this->getClassToken(new ReflectionClass($value), $id);
             } catch (\ReflectionException $ex) {
-                trigger_error($ex->getMessage(), E_USER_NOTICE);
+                error_log($ex->getMessage());
             }
         }
         return new ScalarToken($value);
@@ -150,21 +151,34 @@ class Scope
     {
         $args = [];
         foreach ($constructor->getParameters() as $parameter) {
-            $anchor = $id.'.'.$parameter->name;
-            try {
-                $token = $this->tokenize($anchor);
-            } catch (\InvalidArgumentException $ex) {
-                if (($parameterClass = $parameter->getClass())) {
-                    $token = $this->getClassToken($parameterClass, $anchor);
-                } elseif ($parameter->isDefaultValueAvailable()) {
-                    $token = new ScalarToken($parameter->getDefaultValue());
-                } else {
-                    throw $ex;
-                }
-            }
-            $args[] = $token;
+            $args[] = $this->getArgument($parameter, $id);
         }
         return $args;
+    }
+
+    /**
+     * Finds a token for a parameter
+     *
+     * @param ReflectionParameter $parameter
+     * @param string $id
+     * @return \LinguaLeo\DI\TokenInterface
+     * @throws \InvalidArgumentException
+     */
+    private function getArgument(ReflectionParameter $parameter, $id)
+    {
+        $id .= '.'.$parameter->name;
+        try {
+            return $this->tokenize($id);
+        } catch (\InvalidArgumentException $ex) {
+            $class = $parameter->getClass();
+            if ($class) {
+                return $this->getClassToken($class, $id);
+            }
+            if ($parameter->isDefaultValueAvailable()) {
+                return new ScalarToken($parameter->getDefaultValue());
+            }
+            throw $ex;
+        }
     }
 
     /**
