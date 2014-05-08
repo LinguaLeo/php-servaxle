@@ -32,6 +32,7 @@ use ReflectionParameter;
 use LinguaLeo\DI\Token\ClassToken;
 use LinguaLeo\DI\Token\ScalarToken;
 use LinguaLeo\DI\Token\GotoToken;
+use LinguaLeo\DI\Token\ConstantToken;
 use LinguaLeo\DI\Exception\ClosureSerializationException;
 
 class Scope
@@ -129,6 +130,9 @@ class Scope
             switch ($value[0]) {
                 case '@': return $this->getSymlinkToken($value);
                 case '$': return $this->getVariableToken(substr($value, 1));
+            }
+            if (defined($value)) {
+                return new ConstantToken($value);
             }
             try {
                 return $this->getClassToken(new ReflectionClass($value), $id);

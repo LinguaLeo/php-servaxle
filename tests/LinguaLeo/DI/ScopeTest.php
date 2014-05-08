@@ -325,75 +325,20 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('Scorpion', $scope->fighter->getName());
     }
 
-    private function inBrackets()
-    {
-        return '['.PHP_EOL.implode(','.PHP_EOL, func_get_args()).','.PHP_EOL.']';
-    }
-
-    public function provideValuesForCompilation()
+    public function provideConstants()
     {
         return [
-            [
-                ['foo' => 'bar'],
-                $this->inBrackets("'foo' => 'bar'")
-            ],
-            [
-                ['foo' => ['a', 'b', 'c']],
-                $this->inBrackets("'foo' => function () { return array (
-  0 => 'a',
-  1 => 'b',
-  2 => 'c',
-); }")
-            ],
-            [
-                [
-                    'fighter' => Fighter::class,
-                    'fighter.name' => 'Baraka'
-                ],
-                $this->inBrackets(
-                    "'fighter' => function (\$scope) { return new \LinguaLeo\DI\MortalCombat\Fighter('Baraka'); }",
-                    "'fighter.name' => 'Baraka'"
-                )
-            ],
-            [
-                [
-                    'arena' => ArenaInterface::class,
-                    ArenaInterface::class => Portal::class
-                ],
-                $this->inBrackets(
-                    "'arena' => function (\$scope) { return new \LinguaLeo\DI\MortalCombat\Arena\Portal; }"
-                )
-            ],
-            [
-                [
-                    'fighter' => FighterFactory::class,
-                    'fighter.isDebug' => true,
-                    'fighter.name' => 'Scorpion',
-                ],
-                $this->inBrackets(
-                    "'fighter' => function (\$scope) { return call_user_func(new \LinguaLeo\DI\MortalCombat\Factory\FighterFactory(true, 'Scorpion'), \$scope, 'fighter'); }",
-                    "'fighter.isDebug' => true",
-                    "'fighter.name' => 'Scorpion'"
-                )
-            ],
-            [
-                [
-                    'something' => 'foo',
-                    'bar' => '$something'
-                ],
-                $this->inBrackets(
-                    "'something' => 'foo'",
-                    "'bar' => function (\$scope) { return \$scope->something; }"
-                )
-            ]
+            ['PHP_INT_MAX', PHP_INT_MAX],
+            ['\DateTimeZone::AFRICA', \DateTimeZone::AFRICA]
         ];
     }
 
     /**
-     * @dataProvider provideValuesForCompilation
+     * @dataProvider provideConstants
      */
-    public function testCompileSimple($values, $compiledScript)
+    public function testGetConstant($name, $value)
     {
-        $this->assertSame($compiledScript, Scope::compile($values));
+        $scope = new Scope(['someconst' => $name]);
+        $this->assertSame($value, $scope->someconst);
     }
 }
