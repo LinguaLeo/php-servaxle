@@ -64,6 +64,16 @@ $scope = new LinguaLeo\DI\Scope([
 $scope->getValue('user'); // "root"
 ```
 
+You can define a constant also. Constants in a class namespace will be processed too.
+
+```php
+$scope = new LinguaLeo\DI\Scope([
+    'max' => 'PHP_INT_MAX'
+]);
+
+$scope->max; // 9223372036854775807 (in 64 bit OS)
+```
+
 ## Symlinks
 
 You can define a symlink to another variable.
