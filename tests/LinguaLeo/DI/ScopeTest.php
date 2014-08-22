@@ -39,13 +39,25 @@ use LinguaLeo\DI\Token\ClassToken;
 
 class ScopeTest extends \PHPUnit_Framework_TestCase
 {
-    public function testSimpleIdentifier()
+
+    public function provideScalars()
     {
-        $scope = new Scope(['something' => 'foo']);
+        return [
+            ['foo', "'foo'"],
+            ['', "''"],
+        ];
+    }
+
+    /**
+     * @dataProvider provideScalars
+     */
+    public function testSimpleIdentifier($value, $result)
+    {
+        $scope = new Scope(['something' => $value]);
         $token = $scope->tokenize('something');
         $this->assertInstanceOf(ScalarToken::class, $token);
-        $this->assertSame("'foo'", $token->getScript());
-        $this->assertSame("'foo'", $token->getBinding());
+        $this->assertSame($result, $token->getScript());
+        $this->assertSame($result, $token->getBinding());
     }
 
     public function testScalarValueAsArray()
@@ -342,13 +354,4 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($value, $scope->someconst);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Value for identifier "foo" is empty
-     */
-    public function testTokenizeEmptyVariable()
-    {
-        $scope = new Scope(['foo' => '']);
-        $scope->tokenize('foo');
-    }
 }

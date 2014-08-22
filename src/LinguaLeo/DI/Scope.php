@@ -127,10 +127,7 @@ class Scope
         if (is_object($value) && $value instanceof \Closure) {
             throw new ClosureSerializationException(sprintf('Serialization of Closure "%s" is not allowed', $id));
         }
-        if (is_string($value)) {
-            if (empty($value)) {
-                throw new \InvalidArgumentException(sprintf('Value for identifier "%s" is empty', $id));
-            }
+        if (is_string($value) && !empty($value)) {
             switch ($value[0]) {
                 case '@': return $this->getSymlinkToken($value);
                 case '$': return $this->getVariableToken(substr($value, 1));
