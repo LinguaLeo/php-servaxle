@@ -346,7 +346,7 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
      * @expectedException \InvalidArgumentException
      * @expectedExceptionMessage Value for identifier "foo" is empty
      */
-    public function testEmptyString()
+    public function testTokenizeEmptyVariable()
     {
         $scope = new Scope(['foo' => ''] );
         $scope->tokenize('foo');
