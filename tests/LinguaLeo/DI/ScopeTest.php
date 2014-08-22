@@ -348,7 +348,7 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
      */
     public function testTokenizeEmptyVariable()
     {
-        $scope = new Scope(['foo' => ''] );
+        $scope = new Scope(['foo' => '']);
         $scope->tokenize('foo');
     }
 }
