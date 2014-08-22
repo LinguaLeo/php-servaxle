@@ -341,4 +341,14 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
         $scope = new Scope(['someconst' => $name]);
         $this->assertSame($value, $scope->someconst);
     }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Value for identifier "foo" is empty
+     */
+    public function testTokenizeEmptyVariable()
+    {
+        $scope = new Scope(['foo' => '']);
+        $scope->tokenize('foo');
+    }
 }

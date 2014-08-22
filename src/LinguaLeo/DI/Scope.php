@@ -120,6 +120,7 @@ class Scope
      * @param string $id
      * @return \LinguaLeo\DI\TokenInterface
      * @throws \LinguaLeo\DI\Exception\ClosureSerializationException
+     * @throws \InvalidArgumentException
      */
     protected function parseToken($value, $id)
     {
@@ -127,6 +128,9 @@ class Scope
             throw new ClosureSerializationException(sprintf('Serialization of Closure "%s" is not allowed', $id));
         }
         if (is_string($value)) {
+            if (empty($value)) {
+                throw new \InvalidArgumentException(sprintf('Value for identifier "%s" is empty', $id));
+            }
             switch ($value[0]) {
                 case '@': return $this->getSymlinkToken($value);
                 case '$': return $this->getVariableToken(substr($value, 1));
