@@ -31,11 +31,11 @@ use LinguaLeo\DI\Scope;
 
 class GotoToken implements TokenInterface
 {
-    private $id;
+    private $key;
 
-    public function __construct($id)
+    public function __construct($key)
     {
-        $this->id = $id;
+        $this->key = $key;
     }
 
     public function getBinding()
@@ -45,7 +45,7 @@ class GotoToken implements TokenInterface
 
     public function getScript()
     {
-        return "\$scope->{$this->id}";
+        return "\$scope->{$this->key}";
     }
 
     public function __toString()
@@ -55,6 +55,6 @@ class GotoToken implements TokenInterface
 
     public function newInstance(Scope $scope)
     {
-        return $scope->{$this->id};
+        return $scope->{$this->key};
     }
 }

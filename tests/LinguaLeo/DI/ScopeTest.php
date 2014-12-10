@@ -353,5 +353,4 @@ class ScopeTest extends \PHPUnit_Framework_TestCase
         $scope = new Scope(['someconst' => $name]);
         $this->assertSame($value, $scope->someconst);
     }
-
 }
