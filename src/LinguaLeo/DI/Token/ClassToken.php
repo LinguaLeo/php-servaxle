@@ -35,7 +35,7 @@ class ClassToken implements TokenInterface
     /**
      * @var string
      */
-    private $id;
+    private $key;
 
     /**
      * @var \ReflectionClass
@@ -47,9 +47,9 @@ class ClassToken implements TokenInterface
      */
     private $arguments;
 
-    public function __construct($id, ReflectionClass $class, array $arguments)
+    public function __construct($key, ReflectionClass $class, array $arguments)
     {
-        $this->id = $id;
+        $this->key = $key;
         $this->class = $class;
         $this->arguments = $arguments;
     }
@@ -66,7 +66,7 @@ class ClassToken implements TokenInterface
             $script .= '('.implode(', ', $this->arguments).')';
         }
         if ($this->isFactory()) {
-            return "call_user_func($script, \$scope, '$this->id')";
+            return "call_user_func($script, \$scope, '$this->key')";
         }
         return $script;
     }
@@ -80,7 +80,7 @@ class ClassToken implements TokenInterface
     {
         $object = $this->createInstance($scope);
         if ($this->isFactory()) {
-            return $object($scope, $this->id);
+            return $object($scope, $this->key);
         }
         return $object;
     }

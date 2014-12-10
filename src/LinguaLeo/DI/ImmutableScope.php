@@ -31,17 +31,17 @@ class ImmutableScope extends Scope
     /**
      * Returns a value without tokenization.
      *
-     * @param mixed $id
+     * @param mixed $key
      * @return mixed
      * @throws \InvalidArgumentException
      */
-    public function getValue($id)
+    public function getValue($key)
     {
-        if (!isset($this->values[$id])) {
-            throw new \InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
+        if (!isset($this->values[$key])) {
+            throw new \InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $key));
         }
-        $value = $this->values[$id];
+        $value = $this->values[$key];
         $isFactory = is_object($value) && method_exists($value, '__invoke');
-        return $isFactory ? $value($this, $id) : $value;
+        return $isFactory ? $value($this, $key) : $value;
     }
 }

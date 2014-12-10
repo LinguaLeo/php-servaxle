@@ -32,8 +32,8 @@ class ImmutableScopeTest extends \PHPUnit_Framework_TestCase
     {
         $scope = new ImmutableScope([
             'something' => 'foo',
-            'bar' => function ($scope, $id) {
-                return $scope->something.$id;
+            'bar' => function ($scope, $key) {
+                return $scope->something.$key;
             }
         ]);
         $this->assertSame('foobar', $scope->bar);

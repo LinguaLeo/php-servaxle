@@ -47,26 +47,26 @@ class Scope
     /**
      * Returns a value as a property.
      *
-     * @param string $id
+     * @param string $key
      * @return mixed
      */
-    public function __get($id)
+    public function __get($key)
     {
-        return $this->$id = $this->getValue($id);
+        return $this->$key = $this->getValue($key);
     }
 
     /**
      * Returns a value.
      *
-     * @param string $id
+     * @param string $key
      * @return mixed
      */
-    public function getValue($id)
+    public function getValue($key)
     {
         try {
-            $token = $this->tokenize($id);
+            $token = $this->tokenize($key);
         } catch (ClosureSerializationException $ex) {
-            return $this->values[$id]($this, $id);
+            return $this->values[$key]($this, $key);
         }
         return $token->newInstance($this);
     }
@@ -74,69 +74,73 @@ class Scope
     /**
      * Tokenizes a value by an identifier.
      *
-     * @param mixed $id
+     * @param mixed $key
      * @return \LinguaLeo\DI\TokenInterface
      * @throws \InvalidArgumentException
      */
-    public function tokenize($id)
+    public function tokenize($key)
     {
-        if (!isset($this->values[$id])) {
-            throw new \InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
+        if (!isset($this->values[$key])) {
+            throw new \InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $key));
         }
-        return $this->parseToken($this->values[$id], $id);
+        return $this->parseToken($this->values[$key], $key);
     }
 
     /**
      * Returns a token for a class.
      *
      * @param ReflectionClass $class
-     * @param string $id
+     * @param string $key
      * @return \LinguaLeo\DI\Token\ClassToken
      * @throws \UnexpectedValueException
      */
-    private function getClassToken(ReflectionClass $class, $id)
+    private function getClassToken(ReflectionClass $class, $key)
     {
         if (!$class->inNamespace()) {
             throw new \ReflectionException(sprintf('No namespace found for the class "%s"', $class->name));
         }
         if (!$class->isInstantiable()) {
             if (empty($this->values[$class->name])) {
-                throw new \UnexpectedValueException(sprintf('No implementation found for "%s" in the path "%s".', $class->name, $id));
+                throw new \UnexpectedValueException(
+                    sprintf('No implementation found for "%s" in the path "%s".', $class->name, $key)
+                );
             }
-            return $this->parseToken($this->values[$class->name], $id);
+            return $this->parseToken($this->values[$class->name], $key);
         }
         $args = [];
         $constructor = $class->getConstructor();
         if ($constructor) {
-            $args = $this->getArguments($constructor, $id);
+            $args = $this->getArguments($constructor, $key);
         }
-        return new ClassToken($id, $class, $args);
+        return new ClassToken($key, $class, $args);
     }
 
     /**
      * Parses a token.
      *
      * @param mixed $value
-     * @param string $id
+     * @param string $key
      * @return \LinguaLeo\DI\TokenInterface
      * @throws \LinguaLeo\DI\Exception\ClosureSerializationException
      * @throws \InvalidArgumentException
      */
-    protected function parseToken($value, $id)
+    protected function parseToken($value, $key)
     {
         if (is_object($value) && $value instanceof \Closure) {
-            throw new ClosureSerializationException(sprintf('Serialization of Closure "%s" is not allowed', $id));
+            throw new ClosureSerializationException(sprintf('Serialization of Closure "%s" is not allowed', $key));
         }
         if (is_string($value) && !empty($value)) {
             switch ($value[0]) {
-                case '@': return $this->getSymlinkToken($value);
-                case '$': return $this->getVariableToken(substr($value, 1));
+                case '@':
+                    return $this->getSymlinkToken($value);
+                case '$':
+                    return $this->getVariableToken(substr($value, 1));
             }
             if (defined($value)) {
                 return new ConstantToken($value);
             }
             try {
-                return $this->getClassToken(new ReflectionClass($value), $id);
+                return $this->getClassToken(new ReflectionClass($value), $key);
             } catch (\ReflectionException $ex) {
                 error_log($ex->getMessage());
             }
@@ -148,15 +152,15 @@ class Scope
      * Returns arguments for a constructor.
      *
      * @param ReflectionMethod $constructor
-     * @param string $id
+     * @param string $key
      * @return array
      * @throws \InvalidArgumentException
      */
-    private function getArguments(ReflectionMethod $constructor, $id)
+    private function getArguments(ReflectionMethod $constructor, $key)
     {
         $args = [];
         foreach ($constructor->getParameters() as $parameter) {
-            $args[] = $this->getArgument($parameter, $id);
+            $args[] = $this->getArgument($parameter, $key);
         }
         return $args;
     }
@@ -165,19 +169,19 @@ class Scope
      * Finds a token for a parameter
      *
      * @param ReflectionParameter $parameter
-     * @param string $id
+     * @param string $key
      * @return \LinguaLeo\DI\TokenInterface
      * @throws \InvalidArgumentException
      */
-    private function getArgument(ReflectionParameter $parameter, $id)
+    private function getArgument(ReflectionParameter $parameter, $key)
     {
-        $id .= '.'.$parameter->name;
+        $key .= '.'.$parameter->name;
         try {
-            return $this->tokenize($id);
+            return $this->tokenize($key);
         } catch (\InvalidArgumentException $ex) {
             $class = $parameter->getClass();
             if ($class) {
-                return $this->getClassToken($class, $id);
+                return $this->getClassToken($class, $key);
             }
             if ($parameter->isDefaultValueAvailable()) {
                 return new ScalarToken($parameter->getDefaultValue());
@@ -189,31 +193,31 @@ class Scope
     /**
      * Returns a token for a symlink.
      *
-     * @param string $id
+     * @param string $key
      * @return \LinguaLeo\DI\Token\GotoToken
      * @throws \UnexpectedValueException
      */
-    private function getSymlinkToken($id)
+    private function getSymlinkToken($key)
     {
-        if (empty($this->values[$id])) {
-            throw new \UnexpectedValueException(sprintf('Unknown %s symlink', $id));
+        if (empty($this->values[$key])) {
+            throw new \UnexpectedValueException(sprintf('Unknown %s symlink', $key));
         }
-        return new GotoToken($this->values[$id]);
+        return new GotoToken($this->values[$key]);
     }
 
     /**
      * Returns a token for a variable.
      *
-     * @param string $id
+     * @param string $key
      * @return \LinguaLeo\DI\Token\GotoToken
      * @throws \UnexpectedValueException
      */
-    private function getVariableToken($id)
+    private function getVariableToken($key)
     {
-        if (empty($this->values[$id])) {
-            throw new \UnexpectedValueException(sprintf('Unknown "%s" variable', $id));
+        if (empty($this->values[$key])) {
+            throw new \UnexpectedValueException(sprintf('Unknown "%s" variable', $key));
         }
-        return new GotoToken($id);
+        return new GotoToken($key);
     }
 
     /**
